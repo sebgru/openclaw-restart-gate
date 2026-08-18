@@ -58,6 +58,22 @@ test('failed Docker restart does not start a cooldown', async () => {
   assert.deepEqual(state.value, {});
 });
 
+test('Docker socket permission failures are identified', async () => {
+  const state = new MemoryState();
+  const error = Object.assign(new Error('permission denied'), { code: 'EACCES' });
+  const gate = new RestartGate({
+    container: 'sample-container',
+    state,
+    docker: {
+      restart: async () => {
+        throw error;
+      }
+    },
+    now: () => 1000
+  });
+  assert.deepEqual((await gate.restart()).body, { error: 'docker_socket_permission_denied' });
+});
+
 test('HTTP trigger requires bearer auth and returns Retry-After', async (t) => {
   const gate = new RestartGate({
     container: 'sample-container',

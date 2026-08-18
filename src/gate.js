@@ -90,7 +90,12 @@ export class RestartGate {
     try {
       await this.docker.restart(this.container);
     } catch (error) {
-      return { status: 502, body: { error: 'restart_failed' }, cause: error };
+      const permissionDenied = error?.code === 'EACCES' || error?.code === 'EPERM';
+      return {
+        status: 502,
+        body: { error: permissionDenied ? 'docker_socket_permission_denied' : 'restart_failed' },
+        cause: error
+      };
     }
     state.lastRestart = now;
     await this.state.write(state);
