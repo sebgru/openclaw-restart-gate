@@ -1,7 +1,8 @@
 # docker-restart-gate
 
 [![CI](https://github.com/sebgru/openclaw-restart-gate/actions/workflows/ci.yml/badge.svg)](https://github.com/sebgru/openclaw-restart-gate/actions/workflows/ci.yml)
-[![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
+[![Coverage](https://codecov.io/gh/sebgru/openclaw-restart-gate/branch/main/graph/badge.svg)](https://codecov.io/gh/sebgru/openclaw-restart-gate)
+[![License: MIT](https://img.shields.io/github/license/sebgru/openclaw-restart-gate.svg)](LICENSE)
 
 A minimal, secure Docker restart gateway with one fixed configured target, authenticated requests, and a cooldown to prevent restart loops.
 
@@ -91,6 +92,6 @@ Or use the GitHub Actions workflow to publish to GHCR.
 
 ## CI/CD
 
-- CI (`ci.yml`): Prettier formatting check, ESLint, `node --test` unit tests with coverage (≥ 90%), Trivy container security scan
+- CI (`ci.yml`): Prettier formatting check, ESLint, `node --test` unit tests with coverage (≥ 90%), Codecov upload, Trivy container security scan
 - docker build (`docker-image.yml`): verifies a clean Docker build on every push/PR
 - docker publish (`docker-publish.yml`): on version tags (e.g. `1.0.0`), builds and publishes to `ghcr.io/sebgru/openclaw-restart-gate` with cosign image signing

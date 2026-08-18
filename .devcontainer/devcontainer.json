@@ -1,11 +1,26 @@
 {
   "name": "docker-restart-gate",
   "image": "mcr.microsoft.com/devcontainers/javascript-node:22",
-  "postCreateCommand": "npm install",
+  "workspaceMount": "source=${localWorkspaceFolder},target=/workspace,type=bind",
+  "workspaceFolder": "/workspace",
+  "initializeCommand": "mkdir -p ~/.ssh && touch -a ~/.gitconfig ~/.vimrc ~/.profile",
+  "mounts": [
+    "source=${localEnv:HOME}/.gitconfig,target=/tmp/host-gitconfig,type=bind,readonly=true",
+    "source=${localEnv:HOME}/.vimrc,target=/home/node/.vimrc,type=bind",
+    "source=${localEnv:HOME}/.profile,target=/home/node/.profile-host,type=bind,readonly=true",
+    "source=${localEnv:HOME}/.ssh,target=/tmp/host-ssh,type=bind,readonly=true"
+  ],
+  "postCreateCommand": "bash /workspace/.devcontainer/setup.sh",
   "customizations": {
     "vscode": {
-      "extensions": ["dbaeumer.vscode-eslint", "esbenp.prettier-vscode"],
+      "extensions": ["dbaeumer.vscode-eslint", "esbenp.prettier-vscode", "github.vscode-github-actions"],
       "settings": {
+        "terminal.integrated.defaultProfile.linux": "zsh",
+        "terminal.integrated.profiles.linux": {
+          "zsh": {
+            "path": "/bin/zsh"
+          }
+        },
         "editor.tabSize": 2,
         "editor.defaultFormatter": "esbenp.prettier-vscode",
         "editor.formatOnSave": true,
