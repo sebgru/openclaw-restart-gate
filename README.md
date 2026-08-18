@@ -80,6 +80,9 @@ npm run format:check
 
 # Run locally
 npm start
+
+# Docker socket integration test (requires a Docker daemon)
+bash test/docker-socket-access.sh
 ```
 
 ## Building
