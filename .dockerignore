@@ -1,0 +1,11 @@
+# Source files not needed in the runtime image
+.devcontainer/
+.github/
+test/
+coverage/
+node_modules/
+*.md
+.gitignore
+.prettierrc
+eslint.config.mjs
+package-lock.json

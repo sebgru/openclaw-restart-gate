@@ -1,5 +1,8 @@
 # docker-restart-gate
 
+[![CI](https://github.com/sebgru/openclaw-restart-gate/actions/workflows/ci.yml/badge.svg)](https://github.com/sebgru/openclaw-restart-gate/actions/workflows/ci.yml)
+[![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
+
 A minimal, secure Docker restart gateway with one fixed configured target, authenticated requests, and a cooldown to prevent restart loops.
 
 ## What it does
@@ -12,14 +15,14 @@ Successful restarts are persisted. The configured container cannot be restarted 
 
 Copy `.env.example`, set a high-entropy `RESTART_GATE_AUTH_TOKEN`, and set `RESTART_GATE_CONTAINER` to the one exact container name this gate may restart. Keep this configuration and its persistent state private.
 
-| Variable | Required | Default |
-| --- | --- | --- |
-| `RESTART_GATE_AUTH_TOKEN` | yes | — |
-| `RESTART_GATE_CONTAINER` | yes | — |
-| `RESTART_GATE_COOLDOWN_SECONDS` | no | `1800` |
-| `RESTART_GATE_STATE_PATH` | no | `/data/restarts.json` |
-| `DOCKER_SOCKET` | no | `/var/run/docker.sock` |
-| `PORT` | no | `8080` |
+| Variable                        | Required | Default                |
+| ------------------------------- | -------- | ---------------------- |
+| `RESTART_GATE_AUTH_TOKEN`       | yes      | —                      |
+| `RESTART_GATE_CONTAINER`        | yes      | —                      |
+| `RESTART_GATE_COOLDOWN_SECONDS` | no       | `1800`                 |
+| `RESTART_GATE_STATE_PATH`       | no       | `/data/restarts.json`  |
+| `DOCKER_SOCKET`                 | no       | `/var/run/docker.sock` |
+| `PORT`                          | no       | `8080`                 |
 
 Example request:
 
@@ -38,9 +41,56 @@ Run gates on a private network, bind them only where callers need them, and moun
 
 The repository is intentionally public; never commit configured container names, tokens, hostnames, or deployment compose files.
 
-## Development
+## Running with Docker
 
 ```sh
+docker run -d \
+  --name docker-restart-gate \
+  -e RESTART_GATE_AUTH_TOKEN=replace-with-a-long-random-secret \
+  -e RESTART_GATE_CONTAINER=sample-container \
+  -v docker-restart-gate-data:/data \
+  -v /var/run/docker.sock:/var/run/docker.sock:ro \
+  -p 8080:8080 \
+  ghcr.io/sebgru/openclaw-restart-gate:latest
+```
+
+Tagged releases (`v1.0.0`, `1.0.0`, etc.) are automatically built, pushed to
+`ghcr.io/sebgru/openclaw-restart-gate`, and signed with [cosign](https://github.com/sigstore/cosign).
+
+## Development
+
+This repository includes a VS Code [devcontainer](.devcontainer/devcontainer.json) with Node.js 22 and the same lint/format tooling used in CI.
+
+```sh
+npm install
+
+# Tests
 npm test
+
+# Tests with coverage (enforces 90% line/branch/function thresholds)
+npm run test:cov
+
+# Lint
+npm run lint
+
+# Format
+npm run format
+npm run format:check
+
+# Run locally
 npm start
 ```
+
+## Building
+
+```sh
+docker build -t docker-restart-gate .
+```
+
+Or use the GitHub Actions workflow to publish to GHCR.
+
+## CI/CD
+
+- CI (`ci.yml`): Prettier formatting check, ESLint, `node --test` unit tests with coverage (≥ 90%), Trivy container security scan
+- docker build (`docker-image.yml`): verifies a clean Docker build on every push/PR
+- docker publish (`docker-publish.yml`): on version tags (e.g. `1.0.0`), builds and publishes to `ghcr.io/sebgru/openclaw-restart-gate` with cosign image signing

@@ -16,7 +16,9 @@ export function parseContainer(value) {
 }
 
 export class FileState {
-  constructor(path) { this.path = path; }
+  constructor(path) {
+    this.path = path;
+  }
   async read() {
     try {
       const raw = await fs.readFile(this.path, 'utf8');
@@ -36,15 +38,22 @@ export class FileState {
 }
 
 export class DockerSocket {
-  constructor(socketPath = '/var/run/docker.sock') { this.socketPath = socketPath; }
+  constructor(socketPath = '/var/run/docker.sock') {
+    this.socketPath = socketPath;
+  }
   restart(containerName) {
     return new Promise((resolve, reject) => {
-      const request = http.request({ socketPath: this.socketPath, method: 'POST', path: `/v1.41/containers/${encodeURIComponent(containerName)}/restart` }, (response) => {
-        response.resume();
-        response.on('end', () => response.statusCode >= 200 && response.statusCode < 300
-          ? resolve()
-          : reject(new Error(`Docker returned HTTP ${response.statusCode}`)));
-      });
+      const request = http.request(
+        { socketPath: this.socketPath, method: 'POST', path: `/v1.41/containers/${encodeURIComponent(containerName)}/restart` },
+        (response) => {
+          response.resume();
+          response.on('end', () =>
+            response.statusCode >= 200 && response.statusCode < 300
+              ? resolve()
+              : reject(new Error(`Docker returned HTTP ${response.statusCode}`))
+          );
+        }
+      );
       request.once('error', reject);
       request.end();
     });
@@ -53,7 +62,12 @@ export class DockerSocket {
 
 export class RestartGate {
   constructor({ container, cooldownMs = 1_800_000, state, docker, now = () => Date.now() }) {
-    this.container = container; this.cooldownMs = cooldownMs; this.state = state; this.docker = docker; this.now = now; this.queue = Promise.resolve();
+    this.container = container;
+    this.cooldownMs = cooldownMs;
+    this.state = state;
+    this.docker = docker;
+    this.now = now;
+    this.queue = Promise.resolve();
   }
   restart() {
     const previous = this.queue;
@@ -67,9 +81,17 @@ export class RestartGate {
     const hasLastRestart = Object.hasOwn(state, 'lastRestart');
     const last = Number(state.lastRestart);
     const remaining = hasLastRestart && Number.isFinite(last) ? this.cooldownMs - (now - last) : 0;
-    if (remaining > 0) return { status: 429, body: { error: 'cooldown_active', retry_after_seconds: Math.ceil(remaining / 1000) }, retryAfter: Math.ceil(remaining / 1000) };
-    try { await this.docker.restart(this.container); }
-    catch (error) { return { status: 502, body: { error: 'restart_failed' }, cause: error }; }
+    if (remaining > 0)
+      return {
+        status: 429,
+        body: { error: 'cooldown_active', retry_after_seconds: Math.ceil(remaining / 1000) },
+        retryAfter: Math.ceil(remaining / 1000)
+      };
+    try {
+      await this.docker.restart(this.container);
+    } catch (error) {
+      return { status: 502, body: { error: 'restart_failed' }, cause: error };
+    }
     state.lastRestart = now;
     await this.state.write(state);
     return { status: 202, body: { status: 'restart_requested' } };
@@ -90,6 +112,8 @@ export function createServer({ gate, authToken }) {
     try {
       const result = await gate.restart();
       return json(response, result.status, result.body, result.retryAfter ? { 'retry-after': String(result.retryAfter) } : {});
-    } catch { return json(response, 500, { error: 'state_error' }); }
+    } catch {
+      return json(response, 500, { error: 'state_error' });
+    }
   });
 }
