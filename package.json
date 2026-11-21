@@ -1,6 +1,6 @@
 {
   "name": "docker-restart-gate",
-  "version": "1.0.0",
+  "version": "1.0.2",
   "private": false,
   "description": "Allowlist-only, authenticated Docker restart gateway with cooldowns.",
   "type": "module",
