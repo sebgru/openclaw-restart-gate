@@ -1,19 +1,24 @@
 {
   "name": "docker-restart-gate",
   "image": "mcr.microsoft.com/devcontainers/javascript-node:22",
+  "features": {
+    "ghcr.io/devcontainers/features/github-cli:1": {}
+  },
   "workspaceMount": "source=${localWorkspaceFolder},target=/workspace,type=bind",
   "workspaceFolder": "/workspace",
-  "initializeCommand": "mkdir -p ~/.ssh && touch -a ~/.gitconfig ~/.vimrc ~/.profile",
+  "initializeCommand": "mkdir -p ~/.ssh ~/.config/gh && touch -a ~/.gitconfig ~/.vimrc ~/.profile",
   "mounts": [
     "source=${localEnv:HOME}/.gitconfig,target=/tmp/host-gitconfig,type=bind,readonly=true",
     "source=${localEnv:HOME}/.vimrc,target=/home/node/.vimrc,type=bind",
     "source=${localEnv:HOME}/.profile,target=/home/node/.profile-host,type=bind,readonly=true",
-    "source=${localEnv:HOME}/.ssh,target=/tmp/host-ssh,type=bind,readonly=true"
+    "source=${localEnv:HOME}/.ssh,target=/tmp/host-ssh,type=bind,readonly=true",
+    "source=${localEnv:HOME}/.config/gh,target=/home/node/.config/gh,type=bind,consistency=cached"
   ],
   "postCreateCommand": "bash /workspace/.devcontainer/setup.sh",
+  "postStartCommand": "gh auth status || echo 'WARNING: gh is not logged in - run gh auth login'",
   "customizations": {
     "vscode": {
-      "extensions": ["dbaeumer.vscode-eslint", "esbenp.prettier-vscode", "github.vscode-github-actions"],
+      "extensions": ["dbaeumer.vscode-eslint", "esbenp.prettier-vscode", "github.vscode-github-actions", "anthropic.claude-code"],
       "settings": {
         "terminal.integrated.defaultProfile.linux": "zsh",
         "terminal.integrated.profiles.linux": {

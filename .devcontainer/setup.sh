@@ -60,8 +60,25 @@ else
     echo "  ~/.profile-host is empty — skipping."
 fi
 
+# ── GitHub CLI ───────────────────────────────────────────────────────────────
+# ~/.config/gh is bind-mounted directly from the host, so the host's `gh`
+# login (hosts.yml) is reused as-is — no copy step and no re-authentication.
+# A bind mount keeps the host uid, which usually differs from the container
+# user, so grant the container user ownership of the mounted path (otherwise
+# the 0600 hosts.yml is unreadable and gh fails).
+echo "→ Configuring GitHub CLI…"
+mkdir -p ~/.config/gh
+sudo chown -R node:node ~/.config/gh
+if [ -f ~/.config/gh/hosts.yml ]; then
+    echo "  Host gh login mounted."
+else
+    echo "  No host gh login found — run 'gh auth login' to authenticate."
+fi
+
 echo ""
 echo "✅ Container setup complete."
 echo "   Workspace : /workspace"
 echo "   Node      : $(node --version)"
 echo "   npm       : $(npm --version)"
+echo "   gh        : $(gh --version 2>&1 | head -1)"
+echo "   gh auth   : $(gh auth status 2>&1 | head -1 || true)"
